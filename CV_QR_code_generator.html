@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Generator for GitHub PDF</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin: 20px 0;
+        }
+
+        h1 {
+            text-align: center;
+            color: #4a5568;
+            margin-bottom: 30px;
+            font-size: 2.2rem;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 1.1rem;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .example {
+            background: #f7fafc;
+            padding: 12px 16px;
+            border-left: 4px solid #667eea;
+            margin-top: 8px;
+            border-radius: 0 8px 8px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin: 10px 0;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        #qrcode {
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 2px dashed #e2e8f0;
+        }
+
+        #qrcode canvas {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .download-section {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            margin: 5px;
+            width: auto;
+            display: inline-block;
+        }
+
+        .download-btn:hover {
+            box-shadow: 0 5px 15px rgba(72, 187, 120, 0.4);
+        }
+
+        .info-box {
+            background: #e6fffa;
+            border: 1px solid #81e6d9;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 20px 0;
+        }
+
+        .info-box h3 {
+            margin: 0 0 10px 0;
+            color: #2c7a7b;
+        }
+
+        .info-box p {
+            margin: 5px 0;
+            color: #2d3748;
+            line-height: 1.5;
+        }
+
+        .step-guide {
+            background: #fff5f5;
+            border: 1px solid #feb2b2;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 20px 0;
+        }
+
+        .step-guide h3 {
+            margin: 0 0 15px 0;
+            color: #c53030;
+        }
+
+        .step-guide ol {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .step-guide li {
+            margin: 8px 0;
+            color: #2d3748;
+            line-height: 1.5;
+        }
+
+        .url-preview {
+            background: #f7fafc;
+            padding: 12px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            word-break: break-all;
+            margin-top: 10px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .error {
+            background: #fed7d7;
+            border: 1px solid #fc8181;
+            color: #c53030;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .download-btn {
+                width: 100%;
+                margin: 5px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 QR Code Generator for GitHub PDF</h1>
+        
+        <div class="step-guide">
+            <h3>📋 Setup Steps:</h3>
+            <ol>
+                <li><strong>Upload PDF to GitHub:</strong> Create a repository and upload your CV PDF file</li>
+                <li><strong>Get Raw URL:</strong> Navigate to the PDF in GitHub, click "Raw" to get direct download link</li>
+                <li><strong>Enter URL below:</strong> Paste the raw GitHub URL to generate QR code</li>
+                <li><strong>Download & Use:</strong> Save the QR code image for business cards, presentations, etc.</li>
+            </ol>
+        </div>
+
+        <div class="form-group">
+            <label for="githubUrl">GitHub Raw PDF URL:</label>
+            <input type="text" id="githubUrl" placeholder="Enter your GitHub raw PDF URL here...">
+            <div class="example">
+                <strong>Example:</strong><br>
+                https://raw.githubusercontent.com/username/repository/main/CV_Kampoli_Inna.pdf
+            </div>
+        </div>
+
+        <button onclick="generateQR()" id="generateBtn">Generate QR Code 🚀</button>
+
+        <div id="errorMessage" class="error" style="display: none;"></div>
+
+        <div id="qrcode"></div>
+
+        <div id="downloadSection" class="download-section" style="display: none;">
+            <button onclick="downloadQR('png')" class="download-btn">📥 Download PNG</button>
+            <button onclick="downloadQR('svg')" class="download-btn">📥 Download SVG</button>
+            <button onclick="copyToClipboard()" class="download-btn">📋 Copy Image</button>
+        </div>
+
+        <div class="info-box">
+            <h3>💡 How to Get GitHub Raw URL:</h3>
+            <p><strong>Method 1:</strong> Go to your PDF file on GitHub → Click "Raw" button → Copy the URL</p>
+            <p><strong>Method 2:</strong> Right-click "Raw" button → "Copy link address"</p>
+            <p><strong>Format:</strong> https://raw.githubusercontent.com/[username]/[repo]/[branch]/[filename].pdf</p>
+        </div>
+
+        <div class="info-box">
+            <h3>🎯 Best Practices:</h3>
+            <p><strong>File Name:</strong> Use clear, professional names like "CV_YourName.pdf"</p>
+            <p><strong>Repository:</strong> Create a dedicated "cv" or "resume" repository</p>
+            <p><strong>Testing:</strong> Always test the QR code before printing</p>
+            <p><strong>Size:</strong> Print QR codes at least 2cm x 2cm for reliable scanning</p>
+        </div>
+    </div>
+
+    <!-- Include QRious library for QR code generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    
+    <script>
+        let currentQR = null;
+        
+        function isValidGitHubUrl(url) {
+            try {
+                const urlObj = new URL(url);
+                return urlObj.hostname === 'raw.githubusercontent.com' && 
+                       url.toLowerCase().includes('.pdf');
+            } catch {
+                return false;
+            }
+        }
+        
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+        
+        async function testUrl(url) {
+            try {
+                const response = await fetch(url, { method: 'HEAD' });
+                return response.ok;
+            } catch {
+                return false;
+            }
+        }
+        
+        async function generateQR() {
+            const url = document.getElementById('githubUrl').value.trim();
+            const button = document.getElementById('generateBtn');
+            const qrcodeDiv = document.getElementById('qrcode');
+            const downloadSection = document.getElementById('downloadSection');
+            
+            if (!url) {
+                showError('Please enter a GitHub raw PDF URL');
+                return;
+            }
+            
+            if (!isValidGitHubUrl(url)) {
+                showError('Please enter a valid GitHub raw PDF URL (must be raw.githubusercontent.com and end with .pdf)');
+                return;
+            }
+            
+            // Show loading state
+            button.disabled = true;
+            button.textContent = '🔄 Generating QR Code...';
+            qrcodeDiv.innerHTML = '<p>Generating QR code...</p>';
+            
+            try {
+                // Test if URL is accessible
+                const isAccessible = await testUrl(url);
+                if (!isAccessible) {
+                    showError('⚠️ Warning: Could not verify URL accessibility. The QR code will still be generated, but please verify the URL is correct.');
+                }
+                
+                // Clear previous QR code
+                qrcodeDiv.innerHTML = '';
+                
+                // Generate QR code
+                currentQR = new QRious({
+                    element: document.createElement('canvas'),
+                    value: url,
+                    size: 300,
+                    level: 'H', // High error correction
+                    foreground: '#2d3748',
+                    background: '#ffffff'
+                });
+                
+                // Display QR code
+                qrcodeDiv.appendChild(currentQR.canvas);
+                
+                // Add URL preview
+                const urlPreview = document.createElement('div');
+                urlPreview.className = 'url-preview';
+                urlPreview.innerHTML = `<strong>QR Code URL:</strong><br>${url}`;
+                qrcodeDiv.appendChild(urlPreview);
+                
+                // Show download section
+                downloadSection.style.display = 'block';
+                
+                // Success feedback
+                button.textContent = '✅ QR Code Generated!';
+                setTimeout(() => {
+                    button.textContent = 'Generate QR Code 🚀';
+                    button.disabled = false;
+                }, 2000);
+                
+            } catch (error) {
+                showError('Error generating QR code: ' + error.message);
+                button.textContent = 'Generate QR Code 🚀';
+                button.disabled = false;
+            }
+        }
+        
+        function downloadQR(format) {
+            if (!currentQR) {
+                showError('Please generate a QR code first');
+                return;
+            }
+            
+            const url = document.getElementById('githubUrl').value.trim();
+            const filename = `CV_QR_Code_${new Date().toISOString().split('T')[0]}`;
+            
+            if (format === 'png') {
+                // Download as PNG
+                const link = document.createElement('a');
+                link.download = `${filename}.png`;
+                link.href = currentQR.canvas.toDataURL('image/png');
+                link.click();
+            } else if (format === 'svg') {
+                // Create SVG version
+                const svg = new QRious({
+                    element: document.createElement('canvas'),
+                    value: url,
+                    size: 300,
+                    level: 'H',
+                    foreground: '#2d3748',
+                    background: '#ffffff'
+                });
+                
+                // Convert canvas to SVG (simplified approach)
+                const canvas = svg.canvas;
+                const svgContent = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300">
+                    <rect width="300" height="300" fill="white"/>
+                    <image href="${canvas.toDataURL()}" width="300" height="300"/>
+                </svg>`;
+                
+                const blob = new Blob([svgContent], { type: 'image/svg+xml' });
+                const link = document.createElement('a');
+                link.download = `${filename}.svg`;
+                link.href = URL.createObjectURL(blob);
+                link.click();
+                URL.revokeObjectURL(link.href);
+            }
+        }
+        
+        async function copyToClipboard() {
+            if (!currentQR) {
+                showError('Please generate a QR code first');
+                return;
+            }
+            
+            try {
+                // Convert canvas to blob
+                currentQR.canvas.toBlob(async (blob) => {
+                    try {
+                        await navigator.clipboard.write([
+                            new ClipboardItem({ 'image/png': blob })
+                        ]);
+                        
+                        // Visual feedback
+                        const button = event.target;
+                        const originalText = button.textContent;
+                        button.textContent = '✅ Copied!';
+                        setTimeout(() => {
+                            button.textContent = originalText;
+                        }, 2000);
+                    } catch (err) {
+                        showError('Could not copy to clipboard. Please use download instead.');
+                    }
+                });
+            } catch (err) {
+                showError('Copy to clipboard not supported. Please use download instead.');
+            }
+        }
+        
+        // Allow Enter key to generate QR code
+        document.getElementById('githubUrl').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                generateQR();
+            }
+        });
+        
+        // Auto-generate when URL is pasted
+        document.getElementById('githubUrl').addEventListener('paste', function() {
+            setTimeout(() => {
+                const url = this.value.trim();
+                if (isValidGitHubUrl(url)) {
+                    generateQR();
+                }
+            }, 100);
+        });
+    </script>
+</body>
+</html>
